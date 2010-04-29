@@ -24,6 +24,8 @@ my %SUBNAME_VS_PROTOTYPE = (
     rule => '&@',
     fallback => '&',
     where => '&',
+    each_loop_begin => '&',
+    each_loop_end => '&',
 );
 
 
@@ -87,6 +89,8 @@ sub fizzbuzz (&) {
     my $to;
     my @rule;
     my @fallback;
+    my @begin_proc;
+    my @end_proc;
 
     do {
         # Define real subs.
@@ -96,12 +100,16 @@ sub fizzbuzz (&) {
         local *rule = __sub_proto { push @rule, [@_] } $SUBNAME_VS_PROTOTYPE{rule};
         local *fallback = __sub_proto { push @fallback, @_ } $SUBNAME_VS_PROTOTYPE{fallback};
         local *where = __sub_proto { $_[0] } $SUBNAME_VS_PROTOTYPE{where};
+        local *each_loop_begin = __sub_proto { push @begin_proc, @_ } $SUBNAME_VS_PROTOTYPE{each_loop_begin};
+        local *each_loop_end = __sub_proto { push @end_proc, @_ } $SUBNAME_VS_PROTOTYPE{each_loop_end};
         $setup->();
     };
 
     __validate_condition($from, $to, [@rule], [@fallback]);
 
     for my $i ($from..$to) {
+        $_->() for @begin_proc;
+
         my $matched;
         for (@rule) {
             my ($proc, $pred) = @$_;
@@ -116,7 +124,8 @@ sub fizzbuzz (&) {
                 $fallback->();
             }
         }
-        print "\n";
+
+        $_->() for @end_proc;
     }
 }
 
