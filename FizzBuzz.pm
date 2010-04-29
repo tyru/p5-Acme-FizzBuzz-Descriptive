@@ -82,3 +82,5 @@ sub __dummy {
 *rule = __dummy rule => '&';
 *fallback = __dummy fallback => '&';
 *where = __dummy where => '&';
+
+"false";
