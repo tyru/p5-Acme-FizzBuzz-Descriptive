@@ -45,7 +45,7 @@ sub import {
     my $class = shift;
     my $pkg   = caller;
 
-    # Avoid compile-error.
+    # Install dummy subs to avoid compile-error.
     for my $subname (keys %SUBNAME_VS_PROTOTYPE) {
         install_subroutine $pkg, $subname => __sub_proto { goto &$subname } $SUBNAME_VS_PROTOTYPE{$subname};
     }
