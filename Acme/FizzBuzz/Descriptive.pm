@@ -5,14 +5,14 @@ use utf8;
 use 5.8.0;
 
 use Carp;
-use Sub::Prototype qw/set_prototype/;
+use Scalar::Util qw/set_prototype/;
 use Data::Util qw/install_subroutine is_integer/;
 
 
 
 sub __sub_proto (&@) {
     my ($sub, $prototype) = @_;
-    set_prototype $sub => $prototype if defined $prototype;
+    set_prototype \&$sub => $prototype if defined $prototype;
     $sub;
 }
 
