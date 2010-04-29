@@ -34,6 +34,8 @@ fizzbuzz {
     rule { print "Fizz" } where { $_ % 3 == 0 };
     rule { print "Buzz" } where { $_ % 5 == 0 };
     fallback { print $_ };
+    select *STDERR;
+    # mode 'a';
 };
 
 print "\n\n";

@@ -5,8 +5,10 @@ use utf8;
 use 5.8.0;
 
 use Carp;
-use Scalar::Util qw/set_prototype/;
-use Data::Util qw/install_subroutine is_integer/;
+use Scalar::Util qw/set_prototype openhandle/;
+use Data::Util qw/install_subroutine is_integer is_string/;
+use Scope::Guard;
+use FileHandle;
 
 
 
@@ -25,6 +27,7 @@ my %SUBNAME_VS_PROTOTYPE = (
     where => '&',
     each_loop_begin => '&',
     each_loop_end => '&',
+    select => undef,
 );
 
 
@@ -96,9 +99,14 @@ sub fizzbuzz (&) {
     my @fallback;
     my @begin_proc;
     my @end_proc;
+    my $out_fh;
+    my @guard;
 
     do {
         # Define real subs.
+        #
+        # TODO Check arguments more strictly.
+
         no warnings qw/redefine/;
         local *from = __sub_proto { $from = shift } $SUBNAME_VS_PROTOTYPE{from};
         local *to   = __sub_proto { $to   = shift } $SUBNAME_VS_PROTOTYPE{to};
@@ -107,10 +115,30 @@ sub fizzbuzz (&) {
         local *where = __sub_proto { $_[0] } $SUBNAME_VS_PROTOTYPE{where};
         local *each_loop_begin = __sub_proto { push @begin_proc, @_ } $SUBNAME_VS_PROTOTYPE{each_loop_begin};
         local *each_loop_end = __sub_proto { push @end_proc, @_ } $SUBNAME_VS_PROTOTYPE{each_loop_end};
+        local *select = __sub_proto {
+            $out_fh = shift;
+            unless (is_string($out_fh) || openhandle($out_fh)) {
+                croak "select()'s argument is filename or filehandle.";
+            }
+        } $SUBNAME_VS_PROTOTYPE{each_loop_end};
+
         $setup->();
     };
 
     __validate_condition($from, $to, [@rule], [@fallback]);
+
+    # Do select($out_fh).
+    if (defined $out_fh) {
+        if (is_string($out_fh)) {
+            $out_fh = FileHandle->new($out_fh => 'w') or die "$!: $out_fh";
+        }
+        unless (openhandle($out_fh)) {
+            croak "filehandle is not open.";
+        }
+
+        my $prev_fh = select $out_fh;
+        push @guard, sub { select $prev_fh };
+    }
 
     for my $i ($from..$to) {
         $_->() for @begin_proc;
