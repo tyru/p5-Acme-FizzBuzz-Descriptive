@@ -168,3 +168,42 @@ sub fizzbuzz (&) {
 
 
 "false";
+__END__
+
+=head1 NAME
+
+    Acme::FizzBuzz::Descriptive - Write FizzBuzz descriptively.
+
+
+=head1 SYNOPSIS
+
+    fizzbuzz {
+        from 1;
+        to 100;
+        rule { print "Fizz" } where { $_ % 3 == 0 };
+        rule { print "Buzz" } where { $_ % 5 == 0 };
+        fallback { print $_ };
+        each_loop_end { print "\n" };
+    };
+
+
+=head1 DESCRIPTION
+
+    (TODO)
+
+=head1 METHODS
+
+=over
+=item fizzbuzz()
+    Write FizzBuzz to output filehandle.
+    You can change output filehandle by out().
+    And you can use under subrounties only in fizzbuzz() block.
+
+=item from()
+=item to()
+=item rule()
+=item fallback()
+=item each_loop_begin()
+=item each_loop_end()
+=item out()
+=back
