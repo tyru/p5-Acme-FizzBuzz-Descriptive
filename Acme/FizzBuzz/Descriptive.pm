@@ -1,4 +1,4 @@
-package FizzBuzz;
+package Acme::FizzBuzz::Descriptive;
 use strict;
 use warnings;
 use utf8;

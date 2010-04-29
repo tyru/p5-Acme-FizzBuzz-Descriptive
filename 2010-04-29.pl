@@ -3,7 +3,7 @@ use strict;
 use warnings;
 use utf8;
 use lib '.';
-use FizzBuzz;
+use Acme::FizzBuzz::Descriptive;
 
 
 fizzbuzz {
@@ -15,5 +15,5 @@ fizzbuzz {
     each_loop_end { print "\n" };
 };
 
-no FizzBuzz;
+no Acme::FizzBuzz::Descriptive;
 # fizzbuzz;    # error
