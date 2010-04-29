@@ -7,6 +7,7 @@ use 5.10.0;
 use Carp;
 use Sub::Prototype qw/set_prototype/;
 use Data::Util qw/install_subroutine/;
+use Scalar::Util qw/looks_like_number/;
 
 
 
@@ -64,6 +65,20 @@ sub unimport {
 
 
 
+sub __validate_condition {
+    my ($from, $to, $rule, $fallback) = @_;
+
+    unless (defined $from && looks_like_number($from)) {
+        croak "from() is not called.";
+    }
+    unless (defined $to   && looks_like_number($to)) {
+        croak "to() is not called.";
+    }
+    unless ($from <= $to) {
+        croak "$from..$to is invalid range.";
+    }
+}
+
 sub fizzbuzz (&) {
     my ($setup) = @_;
     my $pkg = caller;
@@ -83,6 +98,8 @@ sub fizzbuzz (&) {
         local *where = __sub_proto { $_[0] } $SUBNAME_VS_PROTOTYPE{where};
         $setup->();
     };
+
+    __validate_condition($from, $to, [@rule], [@fallback]);
 
     for my $i ($from..$to) {
         my $matched;
