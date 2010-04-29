@@ -6,8 +6,7 @@ use 5.8.0;
 
 use Carp;
 use Sub::Prototype qw/set_prototype/;
-use Data::Util qw/install_subroutine/;
-use Scalar::Util qw/looks_like_number/;
+use Data::Util qw/install_subroutine is_integer/;
 
 
 
@@ -70,11 +69,17 @@ sub unimport {
 sub __validate_condition {
     my ($from, $to, $rule, $fallback) = @_;
 
-    unless (defined $from && looks_like_number($from)) {
+    unless (defined $from) {
         croak "from() is not called.";
     }
-    unless (defined $to   && looks_like_number($to)) {
+    unless (is_integer($from)) {
+        croak "from()'s value is not integer.";
+    }
+    unless (defined $to) {
         croak "to() is not called.";
+    }
+    unless (is_integer($to)) {
+        croak "to()'s value is not integer.";
     }
     unless ($from <= $to) {
         croak "$from..$to is invalid range.";
