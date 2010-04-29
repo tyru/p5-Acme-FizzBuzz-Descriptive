@@ -13,3 +13,6 @@ fizzbuzz {
     rule { print 'Buzz' } where { $_ % 5 == 0 };
     fallback { print $_ };
 };
+
+no FizzBuzz;
+# fizzbuzz;    # error

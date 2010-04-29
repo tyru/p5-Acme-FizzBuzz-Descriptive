@@ -53,7 +53,14 @@ sub import {
     install_subroutine $pkg, fizzbuzz => __sub_proto { goto &fizzbuzz } prototype 'fizzbuzz';
 }
 
-# TODO export()
+sub unimport {
+    my $pkg   = caller;
+
+    no strict 'refs';
+    for my $subname ('fizzbuzz', keys %SUBNAME_VS_PROTOTYPE) {
+        delete ${"$pkg\::"}{$subname};
+    }
+}
 
 
 
