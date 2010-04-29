@@ -4,6 +4,8 @@ use warnings;
 use utf8;
 use 5.8.0;
 
+our $VERSION = eval '0.001';
+
 use Carp;
 use Scalar::Util qw/set_prototype openhandle/;
 use Data::Util qw/install_subroutine is_integer is_string/;
