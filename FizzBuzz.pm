@@ -6,7 +6,7 @@ use 5.10.0;
 
 use Carp;
 use Sub::Prototype qw/set_prototype/;
-use Data::Dump qw/dump/;
+use Data::Util qw/install_subroutine/;
 
 
 
@@ -36,8 +36,7 @@ sub __dummy {
 }
 
 for my $subname (keys %SUBNAME_VS_PROTOTYPE) {
-    no strict 'refs';
-    *$subname = __dummy $subname => $SUBNAME_VS_PROTOTYPE{$subname};
+    install_subroutine __PACKAGE__, $subname => __dummy $subname => $SUBNAME_VS_PROTOTYPE{$subname};
 }
 
 
@@ -47,12 +46,11 @@ sub import {
     my $pkg   = caller;
 
     # Avoid compile-error.
-    no strict 'refs';
     for my $subname (keys %SUBNAME_VS_PROTOTYPE) {
-        *{"$pkg\::$subname"} = __sub_proto { goto &$subname } $SUBNAME_VS_PROTOTYPE{$subname};
+        install_subroutine $pkg, $subname => __sub_proto { goto &$subname } $SUBNAME_VS_PROTOTYPE{$subname};
     }
 
-    *{"$pkg\::fizzbuzz"} = __sub_proto { goto &fizzbuzz } prototype 'fizzbuzz';
+    install_subroutine $pkg, fizzbuzz => __sub_proto { goto &fizzbuzz } prototype 'fizzbuzz';
 }
 
 # TODO export()
