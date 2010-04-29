@@ -10,12 +10,37 @@ use Data::Dump qw/dump/;
 
 
 
-
 sub __sub_proto (&@) {
     my ($sub, $prototype) = @_;
     set_prototype $sub => $prototype if defined $prototype;
     $sub;
 }
+
+
+my %SUBNAME_VS_PROTOTYPE = (
+    from => undef,
+    to => undef,
+    rule => '&@',
+    fallback => '&',
+    where => '&',
+);
+
+
+
+# Install dummy subs.
+sub __dummy {
+    my ($subname, $prototype) = @_;
+    return __sub_proto {
+        croak "You can't call $subname() outside fizzbuzz().";
+    } $prototype;
+}
+
+for my $subname (keys %SUBNAME_VS_PROTOTYPE) {
+    no strict 'refs';
+    *$subname = __dummy $subname => $SUBNAME_VS_PROTOTYPE{$subname};
+}
+
+
 
 sub import {
     my $class = shift;
@@ -23,13 +48,16 @@ sub import {
 
     # Avoid compile-error.
     no strict 'refs';
-    *{"$pkg\::fizzbuzz"} = __sub_proto { goto &fizzbuzz } '&';
-    *{"$pkg\::from"}     = __sub_proto { goto &from };
-    *{"$pkg\::to"}       = __sub_proto { goto &to   };
-    *{"$pkg\::rule"}     = __sub_proto { goto &rule } '&@';
-    *{"$pkg\::fallback"} = __sub_proto { goto &fallback } '&';
-    *{"$pkg\::where"}    = __sub_proto { goto &where } '&';
+    for my $subname (keys %SUBNAME_VS_PROTOTYPE) {
+        *{"$pkg\::$subname"} = __sub_proto { goto &$subname } $SUBNAME_VS_PROTOTYPE{$subname};
+    }
+
+    *{"$pkg\::fizzbuzz"} = __sub_proto { goto &fizzbuzz } prototype 'fizzbuzz';
 }
+
+# TODO export()
+
+
 
 sub fizzbuzz (&) {
     my ($setup) = @_;
@@ -43,11 +71,11 @@ sub fizzbuzz (&) {
     do {
         # Define real subs.
         no warnings qw/redefine/;
-        local *from = __sub_proto { $from = shift };
-        local *to   = __sub_proto { $to   = shift };
-        local *rule = __sub_proto { push @rule, [@_] } '&@';
-        local *fallback = __sub_proto { push @fallback, @_ } '&';
-        local *where = __sub_proto { $_[0] } '&';
+        local *from = __sub_proto { $from = shift } $SUBNAME_VS_PROTOTYPE{from};
+        local *to   = __sub_proto { $to   = shift } $SUBNAME_VS_PROTOTYPE{to};
+        local *rule = __sub_proto { push @rule, [@_] } $SUBNAME_VS_PROTOTYPE{rule};
+        local *fallback = __sub_proto { push @fallback, @_ } $SUBNAME_VS_PROTOTYPE{fallback};
+        local *where = __sub_proto { $_[0] } $SUBNAME_VS_PROTOTYPE{where};
         $setup->();
     };
 
@@ -70,17 +98,6 @@ sub fizzbuzz (&) {
     }
 }
 
-sub __dummy {
-    my ($subname, $prototype) = @_;
-    return __sub_proto {
-        croak "You can't call $subname() outside fizzbuzz().";
-    } $prototype;
-}
 
-*from = __dummy from => '';
-*to   = __dummy to   => '';
-*rule = __dummy rule => '&';
-*fallback = __dummy fallback => '&';
-*where = __dummy where => '&';
 
 "false";
