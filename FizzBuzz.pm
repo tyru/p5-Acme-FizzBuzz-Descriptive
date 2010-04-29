@@ -113,7 +113,8 @@ sub fizzbuzz (&) {
         my $matched;
         for (@rule) {
             my ($proc, $pred) = @$_;
-            if (do { local $_ = $i; $pred->() }) {
+            local $_ = $i;
+            if ($pred->()) {
                 $proc->();
                 $matched = 1;
             }
