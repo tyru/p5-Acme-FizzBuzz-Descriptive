@@ -101,6 +101,7 @@ sub fizzbuzz (&) {
     my @end_proc;
     my $out_fh;
     my @guard;
+    my $open_mode = 'w';
 
     do {
         # Define real subs.
@@ -117,6 +118,7 @@ sub fizzbuzz (&) {
         local *each_loop_end = __sub_proto { push @end_proc, @_ } $SUBNAME_VS_PROTOTYPE{each_loop_end};
         local *select = __sub_proto {
             $out_fh = shift;
+            $open_mode = shift || $open_mode;
             unless (is_string($out_fh) || openhandle($out_fh)) {
                 croak "select()'s argument is filename or filehandle.";
             }
@@ -130,7 +132,7 @@ sub fizzbuzz (&) {
     # Do select($out_fh).
     if (defined $out_fh) {
         if (is_string($out_fh)) {
-            $out_fh = FileHandle->new($out_fh => 'w') or die "$!: $out_fh";
+            $out_fh = FileHandle->new($out_fh => $open_mode) or die "$!: $out_fh";
         }
         unless (openhandle($out_fh)) {
             croak "filehandle is not open.";
