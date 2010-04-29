@@ -2,7 +2,7 @@ package Acme::FizzBuzz::Descriptive;
 use strict;
 use warnings;
 use utf8;
-use 5.10.0;
+use 5.8.0;
 
 use Carp;
 use Sub::Prototype qw/set_prototype/;
